@@ -1,8 +1,0 @@
-BAN SUA 23-11-2026
-
-1. Quan Do di xong, ban co hien ngay; may doi 0.65 giay moi di.
-2. Khi build Windows, khong mo cua so Console den nua (WIN32_EXECUTABLE va sfml-main).
-3. Mo thu muc XiangqiOOP trong Visual Studio, Project > Delete Cache and Reconfigure neu can, Build > Build All.
-4. Chay XiangqiOOP.exe.
-5. Cac tinh nang luu/tai thu cong cua ban truoc duoc giu nguyen.
-6. Dung ban zip moi, khong copy exe cua ban cu.
