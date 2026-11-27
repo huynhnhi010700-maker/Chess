@@ -5,7 +5,7 @@
 class Game {
 public:
     enum Mode { HumanVsHuman, HumanVsAI };
-    enum State { Playing, RedWins, BlackWins, RedTimeout, BlackTimeout };
+    enum State { Playing, RedWins, BlackWins, RedTimeout, BlackTimeout, Draw };
     std::string redName="Nguoi choi 1",blackName="Nguoi choi 2",saveLabel="Van moi";
     Board board;
     Piece::Side turn=Piece::Red;
@@ -24,5 +24,8 @@ public:
     bool saveHistory()const;
     static std::string notation(const Move& m,const Piece& p,const Piece& captured);
     static std::string stateName(State s);
+private:
+    bool isThreefoldRepetition()const;
+    bool hasMatingMaterial(Piece::Side side)const;
 };
 

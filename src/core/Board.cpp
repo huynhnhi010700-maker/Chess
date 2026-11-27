@@ -35,6 +35,8 @@ std::vector<Move> Board::pseudoFrom(int r,int c)const {
  if(!inBounds(r,c))return {};
  Piece p=get(r,c);
  if(p.side==Piece::None)return {};
+ if((p.type==Piece::General||p.type==Piece::Advisor)&&!inPalace(r,c,p.side))return {};
+ if(p.type==Piece::Elephant&&(p.side==Piece::Red?r<5:r>4))return {};
  // Polymorphism: BanCo khong can biet quy tac tung quan.
  static const Tuong tuong; static const Si si; static const Voi voi;
  static const Ma ma; static const Xe xe; static const Phao phao; static const Tot tot;
