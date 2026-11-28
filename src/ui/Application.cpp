@@ -22,13 +22,24 @@ public:
     Application():window(sf::VideoMode(1250,940),"CO TUONG OOP - XIANGQI",sf::Style::Titlebar|sf::Style::Close){
         window.setFramerateLimit(60);window.setVerticalSyncEnabled(true);
         if(!(font.loadFromFile("assets/VT323-Regular.ttf") || font.loadFromFile("assets/font/VT323-Regular.ttf") || font.loadFromFile("C:/Windows/Fonts/consola.ttf") || font.loadFromFile("C:/Windows/Fonts/arial.ttf")))std::cerr<<"Khong tai duoc font!\n";
-        if(!boardImage.loadFromFile("assets/board.png"))std::cerr<<"Khong tai duoc ban co!\n";
-        const std::string files[2][7]={{"","red_general.png","red_advisor.png","red_elephant.png","red_horse.png","red_rook.png","red_cannon.png"},{"","black_general.png","black_advisor.png","black_elephant.png","black_horse.png","black_rook.png","black_cannon.png"}};
-        for(int i=0;i<2;++i)for(int j=1;j<=6;++j)pieces[i][j].loadFromFile("assets/"+files[i][j]);
-        pieces[0][7].loadFromFile("assets/red_soldier.png");pieces[1][7].loadFromFile("assets/black_soldier.png");
+        if(!backgroundOne.loadFromFile("assets/manhinhchinh1.png"))std::cerr<<"Khong tai duoc nen: assets/manhinhchinh1.png\n";
+        if(!backgroundTwo.loadFromFile("assets/nentron_banco.png"))std::cerr<<"Khong tai duoc nen: assets/nentron_banco.png\n";
+        if(!boardImage.loadFromFile("assets/board.png"))std::cerr<<"Khong tai duoc ban co: assets/board.png\n";
+        const std::string files[2][8]={
+            {"","assets/red_general.png","assets/red_advisor.png","assets/red_elephant.png","assets/red_horse.png","assets/red_rook.png","assets/red_cannon.png","assets/red_soldier.png"},
+            {"","assets/black_general.png","assets/black_advisor.png","assets/black_elephant.png","assets/black_horse.png","assets/black_rook.png","assets/black_cannon.png","assets/black_soldier.png"}
+        };
+        for(int side=0;side<2;++side)for(int type=1;type<=7;++type){
+            sf::Image pieceImage;
+            if(!pieceImage.loadFromFile(files[side][type])){std::cerr<<"Khong tai duoc quan co: "<<files[side][type]<<'\n';continue;}
+            const auto corner=pieceImage.getPixel(0,0);
+            if(corner.r==0&&corner.g==0&&corner.b==0)pieceImage.createMaskFromColor(sf::Color::Black);
+            pieces[side][type].loadFromImage(pieceImage);
+        }
         clickBuffer.loadFromFile("assets/move.wav");captureBuffer.loadFromFile("assets/capture.wav");sound.setVolume(55);
         landscape.loadFromFile("assets/autumn_pixel.png");landscape.setSmooth(false);
-        bgMusic.openFromFile("assets/ambient.wav");bgMusic.setLoop(true);bgMusic.setVolume(20);
+        if(!bgMusic.openFromFile("assets/ambient.wav"))std::cerr<<"Khong tai duoc nhac nen: assets/ambient.wav\n";
+        bgMusic.setLoop(true);bgMusic.setVolume(20);
         loadSettings();updateAudio();
         game.start(Game::HumanVsHuman,120);
     }
@@ -42,15 +53,15 @@ public:
             if(game.turn!=turnBeforeTick){resetSelection();botDelayClock.restart();}
             if(game.mode==Game::HumanVsAI&&game.turn==Piece::Black&&botDelayClock.getElapsedTime().asSeconds()>=0.65f){Move m=ai.choose(game.board,Piece::Black,difficulty);make(m);}
         }
-        window.clear(sf::Color(18,28,39));if(screen==Startup)drawStartup();else if(screen==Menu)drawMenu();else if(screen==Help)drawHelp();else if(screen==History)drawHistory();else if(screen==Settings)drawSettings();else if(screen==Result)drawResult();else if(screen==Setup)drawSetup();else drawMatch();window.display();
+        window.clear(sf::Color(18,28,39));drawBackdrop();if(screen==Startup)drawStartup();else if(screen==Menu)drawMenu();else if(screen==Help)drawHelp();else if(screen==History)drawHistory();else if(screen==Settings)drawSettings();else if(screen==Result)drawResult();else if(screen==Setup)drawSetup();else drawMatch();window.display();
     }}
 private:
     enum Screen { Startup, Menu, Match, Help, History, Settings, Result, Setup };
     sf::RenderWindow window;
     sf::Font font;
-    sf::Texture boardImage,landscape;
+    sf::Texture boardImage,landscape,backgroundOne,backgroundTwo;
     sf::Music bgMusic;
-    bool english=false,musicEnabled=true,effectsEnabled=true;
+    bool english=false,musicEnabled=true,effectsEnabled=true,backgroundOneSelected=false;
     int difficulty=1,menuMode=0,selectedSave=0,editField=0;
     std::wstring entry[3]={L"Nguoi choi 1",L"Nguoi choi 2",L"Van co 1"};
     sf::Vector2i mousePos;
@@ -73,6 +84,7 @@ private:
     std::vector<std::string> historyFiles;
     int historyPage=0;
     std::string namedSlot;
+    // Original repository board frame and 80 px intersection spacing.
     const float bx=24,by=18,ox=80,oy=90,step=80;
 
     void text(const std::wstring& s,float x,float y,unsigned size,sf::Color color=sf::Color(36,20,9),bool centered=false){
@@ -86,8 +98,9 @@ private:
         size+=7;
         unsigned logical=std::max(9u,unsigned(size*.67f));float scale=float(size)/float(logical);
         sf::Text t(s,font,logical);t.setScale(scale,scale);t.setFillColor(color);
-        const auto bounds=t.getLocalBounds();t.setOrigin(bounds.left+bounds.width/2.f,bounds.top+bounds.height/2.f);
-        t.setPosition(std::round(cx),std::round(cy));window.draw(t);
+        const sf::FloatRect b=t.getLocalBounds();
+        t.setOrigin(b.left+b.width/2.0f,b.top+b.height/2.0f);
+        t.setPosition(cx,cy);window.draw(t);
     }
     void rect(float x,float y,float w,float h,sf::Color fill,float radius=0){(void)radius;sf::RectangleShape r(sf::Vector2f(w,h));r.setPosition(x,y);r.setFillColor(fill);window.draw(r);}
     void button(const std::wstring& label,float x,float y,float w,float h,bool active=false,bool enableHover=true){
@@ -306,8 +319,8 @@ private:
             return;
         }
         if(screen==Startup){
-            if(hit(x,y,378,702,225,66)){replayFromStartup();return;}
-            if(hit(x,y,647,702,225,66)){screen=Menu;return;}
+            if(hit(x,y,350,760,240,64)){replayFromStartup();return;}
+            if(hit(x,y,660,760,240,64)){screen=Menu;return;}
             return;
         }
         if(screen==Menu){
@@ -324,6 +337,7 @@ private:
             if(hit(x,y,685,290,210,62)){effectsEnabled=!effectsEnabled;updateAudio();saveSettings();if(effectsEnabled){sound.stop();sound.setBuffer(clickBuffer);sound.play();}}
             else if(hit(x,y,685,390,210,62)){musicEnabled=!musicEnabled;updateAudio();saveSettings();}
             else if(hit(x,y,685,490,210,62)){english=!english;saveSettings();}
+            else if(hit(x,y,685,590,210,62)){backgroundOneSelected=!backgroundOneSelected;saveSettings();}
             else if(hit(x,y,512,747,230,66)){screen=Menu;}
         }else if(screen==Help){if(hit(x,y,489,825,260,58))screen=Menu;}
         else if(screen==History){
@@ -369,8 +383,9 @@ private:
         return std::wstring(names[piece.type])+std::to_wstring(from)+direction+std::to_wstring(value);
     }
     void drawBackdrop(){
-        sf::Sprite bg(landscape);
-        if(landscape.getSize().x>0){bg.setScale(1250.f/landscape.getSize().x,940.f/landscape.getSize().y);window.draw(bg);}
+        const sf::Texture& texture=(screen==Startup||backgroundOneSelected)?backgroundOne:backgroundTwo;
+        sf::Sprite bg(texture);
+        if(texture.getSize().x>0){const float scale=std::max(1250.f/texture.getSize().x,940.f/texture.getSize().y);bg.setScale(scale,scale);bg.setPosition((1250.f-texture.getSize().x*scale)/2.f,(940.f-texture.getSize().y*scale)/2.f);window.draw(bg);}
         else rect(0,0,1250,940,sf::Color(25,140,210));
     }
     void panel(float x,float y,float w,float h){
@@ -387,11 +402,11 @@ private:
         if(musicEnabled && bgMusic.getStatus()!=sf::Music::Playing)bgMusic.play();
         if(!musicEnabled && bgMusic.getStatus()==sf::Music::Playing)bgMusic.pause();
     }
-    void saveSettings(){std::filesystem::create_directories(saveDirectory());std::ofstream f(saveDirectory() / "settings.txt");if(f)f<<english<<' '<<musicEnabled<<' '<<effectsEnabled<<' '<<difficulty<<' '<<menuMode<<'\n';}
-    void loadSettings(){std::ifstream f(saveDirectory() / "settings.txt");if(f)f>>english>>musicEnabled>>effectsEnabled>>difficulty>>menuMode;
+    void saveSettings(){std::filesystem::create_directories(saveDirectory());std::ofstream f(saveDirectory() / "settings.txt");if(f)f<<english<<' '<<musicEnabled<<' '<<effectsEnabled<<' '<<difficulty<<' '<<menuMode<<' '<<backgroundOneSelected<<'\n';}
+    void loadSettings(){std::ifstream f(saveDirectory() / "settings.txt");if(f)f>>english>>musicEnabled>>effectsEnabled>>difficulty>>menuMode>>backgroundOneSelected;
         difficulty=std::clamp(difficulty,0,2);menuMode=std::clamp(menuMode,0,1);}
     void drawSettings(){
-        drawBackdrop();panel(328,165,605,665);
+        panel(328,165,605,665);
         text(tr(L"CÀI ĐẶT",L"SETTINGS"),630,199,34,sf::Color(110,30,20),true);
         text(tr(L"Âm thanh",L"Sound effects"),365,306,21);
         button(effectsEnabled?tr(L"BẬT",L"ON"):tr(L"TẮT",L"OFF"),685,290,210,62,effectsEnabled);
@@ -400,19 +415,25 @@ private:
         text(tr(L"Ngôn ngữ",L"Language"),365,506,21);
         button(english?L"ENGLISH":L"TIẾNG VIỆT",685,490,210,62,true);
         
+        text(tr(L"HÌNH NỀN",L"BACKGROUND"),365,606,21);
+        button(backgroundOneSelected?tr(L"NỀN 1",L"BACKGROUND 1"):tr(L"NỀN 2",L"BACKGROUND 2"),685,590,210,62,backgroundOneSelected);
         button(tr(L"QUAY LẠI",L"BACK"),512,747,230,66);
     }
     void drawStartup(){
-        // Show the supplied red autumn pixel-art without a dark overlay or a large title.
-        drawBackdrop();
-        coloredButton(tr(L"SẴN SÀNG",L"READY"),378,702,225,66,sf::Color(67,143,91));
-        woodButton(tr(L"MENU CHÍNH",L"MAIN MENU"),647,702,225,66);
+        constexpr float y=760.f,w=240.f,h=64.f;
+        const float readyX=350.f,menuX=660.f;
+        rect(readyX+4,y+5,w,h,sf::Color(79,48,24,150));
+        rect(readyX,y,w,h,sf::Color(166,44,33));
+        rect(readyX,y,w,4,sf::Color(92,22,15));rect(readyX,y+h-4,w,4,sf::Color(92,22,15));
+        rect(readyX,y,4,h,sf::Color(92,22,15));rect(readyX+w-4,y,4,h,sf::Color(92,22,15));
+        centeredText(tr(L"S\u1EB4N S\u00C0NG",L"READY"),readyX+w/2.f,y+h/2.f,20,sf::Color(247,232,206));
+        woodButton(tr(L"MENU CH\u00CDNH",L"MAIN MENU"),menuX,y,w,h);
     }
     void drawMenu(){
-        drawBackdrop();
+        
         button(english?L"VI":L"EN",980,36,90,48);button(tr(L"THOÁT",L"EXIT"),1080,36,130,48);
         panel(326,166,600,672);
-        text(tr(L"CHẾ ĐỘ CHƠI",L"GAME MODE"),625,210,23,sf::Color(110,30,20),true);
+        centeredText(tr(L"CHẾ ĐỘ CHƠI",L"GAME MODE"),626,222,40,sf::Color(110,30,20));
         button(tr(L"ĐẤU MÁY",L"VS BOT"),423,310,195,66,menuMode==0);
         button(tr(L"2 NGƯỜI",L"2 PLAYERS"),633,310,195,66,menuMode==1);
         text(tr(L"ĐỘ KHÓ",L"DIFFICULTY"),625,412,22,sf::Color(110,30,20),true);
@@ -428,7 +449,7 @@ private:
         button(tr(L"CÀI ĐẶT",L"SETTINGS"),626,736,196,62);
     }
     void drawSetup(){
-        drawBackdrop();panel(310,130,630,690);
+        panel(310,130,630,690);
         text(tr(L"THÔNG TIN VÁN ĐẤU",L"MATCH DETAILS"),625,165,31,sf::Color(110,30,20),true);
         const std::wstring captions[3]={tr(L"TÊN QUÂN ĐỎ",L"RED PLAYER"),tr(L"TÊN QUÂN ĐEN",L"BLACK PLAYER"),tr(L"TÊN VÁN LƯU",L"SAVE NAME")};
         for(int i=0;i<3;++i){
@@ -452,7 +473,7 @@ private:
         button(tr(L"QUAY LẠI",L"BACK"),650,687,210,60);
     }
     void drawHelp(){
-        drawBackdrop();panel(153,96,944,788);
+        panel(153,96,944,788);
         text(tr(L"HƯỚNG DẪN",L"HOW TO PLAY"),625,130,34,sf::Color(110,30,20),true);
         const std::vector<std::wstring> vi={L"CHỌN QUÂN",L"Click vào một quân hoặc WASD + Enter để chọn.",L"Các vị trí sáng là nước đi hợp lệ. Click ô đích để đi.",L"LUẬT CƠ BẢN",L"Tướng đi một ô trong cung. Sĩ đi chéo một ô trong cung.",L"Tượng đi chéo hai ô, không qua sông và không bị chặn mắt.",L"Mã đi chữ L (có thể bị cản chân). Xe đi ngang hoặc dọc.",L"Pháo ăn quân khi có đúng một quân làm ngòi.",L"Tốt tiến một ô; qua sông có thể đi ngang, không lùi.",L"LƯU VÀ THAO TÁC",L"F5: Lưu nhanh. ESC: Menu. H: Hướng dẫn."};
         const std::vector<std::wstring> en={L"SELECT A PIECE",L"Click a piece or use WASD + Enter to select.",L"Highlighted intersections are legal moves. Click to move.",L"BASIC RULES",L"General: one step inside palace. Advisor: diagonal in palace.",L"Elephant: two diagonally, cannot cross river or jump eyes.",L"Horse: L-shape, can be blocked. Rook: straight lines.",L"Cannon captures by jumping exactly one screen piece.",L"Soldier advances; can go sideways after the river.",L"SAVES AND CONTROLS",L"F5: quick save. ESC: menu. H: help."};
@@ -461,7 +482,7 @@ private:
         button(tr(L"QUAY LẠI",L"BACK"),489,825,260,58);
     }
     void drawHistory(){
-        drawBackdrop();panel(245,108,770,740);
+        panel(245,108,770,740);
         text(tr(L"TẢI VÁN CŨ",L"LOAD GAME"),625,138,32,sf::Color(110,30,20),true);
         if(historyFiles.empty())text(tr(L"Chưa có ván đấu nào được lưu",L"No saved games yet"),625,350,20,sf::Color(36,20,9),true);
         for(int i=0;i<6;++i){int idx=historyPage*6+i;if(idx>=int(historyFiles.size()))break;
@@ -478,7 +499,7 @@ private:
     }
     void drawResult(){
         // Show the original red autumn pixel-art unobstructed first.
-        drawBackdrop();
+        
         if(resultElapsed<1.8f)return;
         // Semi-transparent title does not replace the user's artwork.
         bool redWon=game.state==Game::RedWins||game.state==Game::BlackTimeout;
@@ -500,15 +521,34 @@ private:
     }
     void drawCircle(float x,float y,float radius,sf::Color fill,sf::Color outline,float border){sf::CircleShape s(radius);s.setPosition(x-radius,y-radius);s.setFillColor(fill);s.setOutlineColor(outline);s.setOutlineThickness(border);window.draw(s);}
     void drawMatch(){
-        sf::Sprite bg(boardImage);bg.setPosition(bx,by);window.draw(bg);
+        
+        const sf::Texture& boardTex=boardImage;
+        sf::Sprite bg(boardTex);
+        bg.setScale(800.0f/boardTex.getSize().x,900.0f/boardTex.getSize().y);
+        bg.setPosition(bx,by);window.draw(bg);
         if(game.hasLast){for(auto rc: {std::pair<int,int>(game.lastMove.fr,game.lastMove.fc),std::pair<int,int>(game.lastMove.tr,game.lastMove.tc)}){drawCircle(bx+ox+rc.second*step,by+oy+rc.first*step,32,sf::Color(240,192,57,55),sf::Color(243,169,55,160),2);}}
         if(selR>=0){drawCircle(bx+ox+selC*step,by+oy+selR*step,35,sf::Color(100,217,180,45),sf::Color(86,232,180),3);for(const Move& m:options){auto p=game.board.get(m.tr,m.tc);drawCircle(bx+ox+m.tc*step,by+oy+m.tr*step,p.side==Piece::None?12:31,sf::Color(50,198,136,165),sf::Color(28,147,108,210),2);}}
         drawCircle(bx+ox+cursorC*step,by+oy+cursorR*step,38,sf::Color::Transparent,sf::Color(46,159,232,240),3);
-        for(int r=0;r<10;++r)for(int c=0;c<9;++c){Piece p=game.board.get(r,c);if(p.side==Piece::None)continue;sf::Sprite sprite(pieces[p.side==Piece::Red?0:1][p.type]);sprite.setOrigin(sprite.getTexture()->getSize().x/2.f,sprite.getTexture()->getSize().y/2.f);sprite.setPosition(bx+ox+c*step,by+oy+r*step);window.draw(sprite);}
+        for(int r=0;r<10;++r)for(int c=0;c<9;++c){Piece p=game.board.get(r,c);if(p.side==Piece::None)continue;const sf::Texture& pieceTex=pieces[p.side==Piece::Red?0:1][p.type];sf::Sprite sprite(pieceTex);sprite.setScale(70.0f/pieceTex.getSize().x,70.0f/pieceTex.getSize().y);sprite.setOrigin(pieceTex.getSize().x/2.f,pieceTex.getSize().y/2.f);sprite.setPosition(bx+ox+c*step,by+oy+r*step);window.draw(sprite);}
         rect(858,18,370,906,sf::Color(122,75,38));rect(862,22,362,898,sf::Color(234,210,172));
         centeredText(tr(L"CỜ TƯỚNG",L"XIANGQI"),1043,60,42,sf::Color(36,20,9));
-        centeredText(wide(game.blackName),1043,111,18,sf::Color(36,20,9));
-        centeredText(wide(game.redName),1043,143,18,sf::Color(36,20,9));
+        auto drawPlayerCard=[&](float x,const std::wstring& playerName,Piece::Side side,bool active){
+            const float y=96.f,w=160.f,h=54.f;
+            const sf::Color border=active?sf::Color(166,44,33):sf::Color(158,116,75);
+            rect(x,y,w,h,border);
+            rect(x+(active?4.f:2.f),y+(active?4.f:2.f),w-(active?8.f:4.f),h-(active?8.f:4.f),sf::Color(246,230,203));
+            drawCircle(x+17.f,y+h/2.f,6.f,side==Piece::Red?sf::Color(166,44,33):sf::Color(36,20,9),sf::Color::Transparent,0.f);
+            std::wstring shown=playerName;
+            const float maxWidth=124.f;
+            auto renderedWidth=[&](const std::wstring& value){sf::Text measure(value,font,16);return measure.getLocalBounds().width*1.5f;};
+            if(renderedWidth(shown)>maxWidth){
+                while(!shown.empty()&&renderedWidth(shown+L"…")>maxWidth)shown.pop_back();
+                shown+=L"…";
+            }
+            centeredText(shown,x+29.f+maxWidth/2.f,y+h/2.f,17,sf::Color(36,20,9));
+        };
+        drawPlayerCard(878.f,wide(game.redName),Piece::Red,game.state==Game::Playing&&game.turn==Piece::Red);
+        drawPlayerCard(1048.f,wide(game.blackName),Piece::Black,game.state==Game::Playing&&game.turn==Piece::Black);
         if(game.state==Game::Playing)centeredText(timeString(game.turn==Piece::Red?game.redTime:game.blackTime),1043,180,38,sf::Color(36,20,9));
         std::wstring status;if(game.state==Game::Playing)status=game.turn==Piece::Red?tr(L"LƯỢT ĐỎ",L"RED TURN"):tr(L"LƯỢT ĐEN",L"BLACK TURN");else if(game.state==Game::RedWins)status=tr(L"ĐỎ THẮNG!",L"RED WINS!");else if(game.state==Game::BlackWins)status=tr(L"ĐEN THẮNG!",L"BLACK WINS!");else if(game.state==Game::Draw)status=tr(L"VÁN HÒA",L"DRAW");else status=tr(L"HẾT GIỜ!",L"TIME UP!");
         centeredText(status,1043,218,24,sf::Color(36,20,9));
