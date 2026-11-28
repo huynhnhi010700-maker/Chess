@@ -75,7 +75,7 @@ private:
     std::string namedSlot;
     const float bx=24,by=18,ox=80,oy=90,step=80;
 
-    void text(const std::wstring& s,float x,float y,unsigned size,sf::Color color=sf::Color::White,bool centered=false){
+    void text(const std::wstring& s,float x,float y,unsigned size,sf::Color color=sf::Color(36,20,9),bool centered=false){
         // Render in a small bitmap-like grid; nearest neighbor scaling avoids blurred glyphs.
         size+=7;
         unsigned logical=std::max(9u,unsigned(size*.67f));float scale=float(size)/float(logical);
@@ -92,30 +92,32 @@ private:
     void rect(float x,float y,float w,float h,sf::Color fill,float radius=0){(void)radius;sf::RectangleShape r(sf::Vector2f(w,h));r.setPosition(x,y);r.setFillColor(fill);window.draw(r);}
     void button(const std::wstring& label,float x,float y,float w,float h,bool active=false,bool enableHover=true){
         bool over=enableHover&&hit(mousePos.x,mousePos.y,x,y,w,h);
-        rect(x+3,y+4,w,h,sf::Color(12,27,45,240));
-        rect(x,y,w,h,active?sf::Color(99,162,205):over?sf::Color(94,166,216):sf::Color(77,147,195));
-        rect(x,y,w,3,active?sf::Color(255,228,126):sf::Color(22,55,85));
-        rect(x,y+h-3,w,3,active?sf::Color(255,228,126):sf::Color(22,55,85));
-        centeredText(label,x+w/2,y+h/2.f,19,sf::Color::White);
+        rect(x+3,y+4,w,h,sf::Color(79,48,24,150));
+        rect(x,y,w,h,active?sf::Color(223,178,120):over?sf::Color(217,170,112):sf::Color(200,150,90));
+        const sf::Color border=active?sf::Color(122,32,24):sf::Color(110,64,30);
+        const float thickness=active?5.f:3.f;
+        rect(x,y,w,thickness,border);rect(x,y+h-thickness,w,thickness,border);
+        rect(x,y,thickness,h,border);rect(x+w-thickness,y,thickness,h,border);
+        centeredText(label,x+w/2,y+h/2.f,19,sf::Color(36,20,9));
     }
     void woodButton(const std::wstring& label,float x,float y,float w,float h){
         const bool over=hit(mousePos.x,mousePos.y,x,y,w,h);
-        rect(x+4,y+5,w,h,sf::Color(79,48,24,180));
-        rect(x,y,w,h,over?sf::Color(220,174,112):sf::Color(200,150,90));
-        rect(x,y,w,3,over?sf::Color(248,220,177):sf::Color(110,64,30));
+        rect(x+4,y+5,w,h,sf::Color(79,48,24,150));
+        rect(x,y,w,h,over?sf::Color(217,170,112):sf::Color(200,150,90));
+        rect(x,y,w,3,sf::Color(110,64,30));
         rect(x,y+h-3,w,3,sf::Color(110,64,30));
         rect(x,y,3,h,sf::Color(110,64,30));rect(x+w-3,y,3,h,sf::Color(110,64,30));
         centeredText(label,x+w/2,y+h/2.f,19,sf::Color(36,20,9));
     }
     void coloredButton(const std::wstring& label,float x,float y,float w,float h,sf::Color base){
         const bool over=hit(mousePos.x,mousePos.y,x,y,w,h);
-        rect(x+5,y+6,w,h,sf::Color(12,27,45,210));
-        sf::Color fill=base;
-        if(over){fill.r=static_cast<sf::Uint8>(std::min(255,int(fill.r)+17));fill.g=static_cast<sf::Uint8>(std::min(255,int(fill.g)+17));fill.b=static_cast<sf::Uint8>(std::min(255,int(fill.b)+17));}
+        (void)base;
+        rect(x+5,y+6,w,h,sf::Color(79,48,24,150));
+        sf::Color fill=over?sf::Color(185,58,48):sf::Color(166,44,33);
         rect(x,y,w,h,fill);
-        rect(x,y,w,3,sf::Color(246,223,142));
-        rect(x,y+h-4,w,4,sf::Color(31,52,57));
-        centeredText(label,x+w/2,y+h/2.f,20,sf::Color::White);
+        rect(x,y,w,4,sf::Color(92,22,15));rect(x,y+h-4,w,4,sf::Color(92,22,15));
+        rect(x,y,4,h,sf::Color(92,22,15));rect(x+w-4,y,4,h,sf::Color(92,22,15));
+        centeredText(label,x+w/2,y+h/2.f,20,sf::Color(247,232,206));
     }
     bool hit(int mx,int my,float x,float y,float w,float h){return mx>=x&&my>=y&&mx<x+w&&my<y+h;}
     void notify(const std::wstring& message,bool ok=true){saveNotice=message;noticeColor=ok?sf::Color(125,235,158):sf::Color(255,135,110);noticeClock.restart();std::cout<<(ok?"[SAVE OK] ":"[SAVE ERROR] ")<<utf8(message)<<"\n";}
@@ -372,10 +374,10 @@ private:
         else rect(0,0,1250,940,sf::Color(25,140,210));
     }
     void panel(float x,float y,float w,float h){
-        rect(x+7,y+7,w,h,sf::Color(12,29,44,180));
-        rect(x,y,w,h,sf::Color(12,24,37,217));
-        rect(x,y,w,4,sf::Color(247,220,116));rect(x,y+h-4,w,4,sf::Color(247,220,116));
-        rect(x,y,4,h,sf::Color(247,220,116));rect(x+w-4,y,4,h,sf::Color(247,220,116));
+        rect(x+7,y+7,w,h,sf::Color(79,48,24,110));
+        rect(x,y,w,h,sf::Color(234,210,172,245));
+        rect(x,y,w,5,sf::Color(122,75,38));rect(x,y+h-5,w,5,sf::Color(122,75,38));
+        rect(x,y,5,h,sf::Color(122,75,38));rect(x+w-5,y,5,h,sf::Color(122,75,38));
     }
     void updateAudio(){
         // sf::Sound (SFX) and sf::Music (BGM) are independent sources.
@@ -390,7 +392,7 @@ private:
         difficulty=std::clamp(difficulty,0,2);menuMode=std::clamp(menuMode,0,1);}
     void drawSettings(){
         drawBackdrop();panel(328,165,605,665);
-        text(tr(L"CÀI ĐẶT",L"SETTINGS"),630,199,34,sf::Color(255,222,116),true);
+        text(tr(L"CÀI ĐẶT",L"SETTINGS"),630,199,34,sf::Color(110,30,20),true);
         text(tr(L"Âm thanh",L"Sound effects"),365,306,21);
         button(effectsEnabled?tr(L"BẬT",L"ON"):tr(L"TẮT",L"OFF"),685,290,210,62,effectsEnabled);
         text(tr(L"Nhạc nền",L"Background music"),365,406,21);
@@ -404,22 +406,22 @@ private:
         // Show the supplied red autumn pixel-art without a dark overlay or a large title.
         drawBackdrop();
         coloredButton(tr(L"SẴN SÀNG",L"READY"),378,702,225,66,sf::Color(67,143,91));
-        coloredButton(tr(L"MENU CHÍNH",L"MAIN MENU"),647,702,225,66,sf::Color(173,76,79));
+        woodButton(tr(L"MENU CHÍNH",L"MAIN MENU"),647,702,225,66);
     }
     void drawMenu(){
         drawBackdrop();
         button(english?L"VI":L"EN",980,36,90,48);button(tr(L"THOÁT",L"EXIT"),1080,36,130,48);
         panel(326,166,600,672);
-        text(tr(L"CHẾ ĐỘ CHƠI",L"GAME MODE"),625,210,23,sf::Color::White,true);
+        text(tr(L"CHẾ ĐỘ CHƠI",L"GAME MODE"),625,210,23,sf::Color(110,30,20),true);
         button(tr(L"ĐẤU MÁY",L"VS BOT"),423,310,195,66,menuMode==0);
         button(tr(L"2 NGƯỜI",L"2 PLAYERS"),633,310,195,66,menuMode==1);
-        text(tr(L"ĐỘ KHÓ",L"DIFFICULTY"),625,412,22,sf::Color::White,true);
+        text(tr(L"ĐỘ KHÓ",L"DIFFICULTY"),625,412,22,sf::Color(110,30,20),true);
         // Luon hien thi nut do kho mau xanh, ke ca khi choi 2 nguoi.
         // Xu ly click chi cho phep thay doi do kho khi dau may.
         button(tr(L"DỄ",L"EASY"),405,450,135,58,difficulty==0,menuMode==0);
         button(tr(L"VỪA",L"MEDIUM"),548,450,135,58,difficulty==1,menuMode==0);
         button(tr(L"KHÓ",L"HARD"),691,450,135,58,difficulty==2,menuMode==0);
-        text(tr(L"Chỉ áp dụng khi đấu máy",L"Only for VS BOT"),625,516,16,sf::Color(189,203,217),true);
+        text(tr(L"Chỉ áp dụng khi đấu máy",L"Only for VS BOT"),625,516,16,sf::Color(36,20,9),true);
         button(tr(L"VÁN MỚI",L"NEW GAME"),412,567,410,68);
         button(tr(L"TẢI VÁN CŨ",L"LOAD GAME"),412,653,410,65);
         button(tr(L"HƯỚNG DẪN",L"HOW TO PLAY"),412,736,196,62);
@@ -427,40 +429,41 @@ private:
     }
     void drawSetup(){
         drawBackdrop();panel(310,130,630,690);
-        text(tr(L"THÔNG TIN VÁN ĐẤU",L"MATCH DETAILS"),625,165,31,sf::Color(255,222,116),true);
+        text(tr(L"THÔNG TIN VÁN ĐẤU",L"MATCH DETAILS"),625,165,31,sf::Color(110,30,20),true);
         const std::wstring captions[3]={tr(L"TÊN QUÂN ĐỎ",L"RED PLAYER"),tr(L"TÊN QUÂN ĐEN",L"BLACK PLAYER"),tr(L"TÊN VÁN LƯU",L"SAVE NAME")};
         for(int i=0;i<3;++i){
             const float y=264+i*117;bool locked=i==1&&menuMode==0;
-            text(captions[i],364,y,19,sf::Color(244,193,114));
-            rect(363,y+30,520,65,locked?sf::Color(64,68,73,235):editField==i?sf::Color(54,98,125):sf::Color(29,55,76,240));
-            if(editField==i&&!locked){rect(363,y+30,520,3,sf::Color(255,223,112));}
+            text(captions[i],364,y,19,sf::Color(36,20,9));
+            rect(363,y+30,520,65,sf::Color(246,230,203));
+            rect(363,y+30,520,2,sf::Color(122,75,38));
+            if(editField==i&&!locked){rect(363,y+30,520,3,sf::Color(122,32,24));}
             std::wstring val=entry[i];if(locked)val=tr(L"MÁY",L"BOT");
             if(val.empty()){
-                text(tr(L"Nhập tên...",L"Enter name..."),382,y+46,20,sf::Color(164,180,194));
+                text(tr(L"Nhập tên...",L"Enter name..."),382,y+46,20,sf::Color(110,90,70));
             }else{
-                text(val,382,y+46,22,locked?sf::Color(180,190,194):sf::Color::White);
+                text(val,382,y+46,22,sf::Color(36,20,9));
             }
         }
         if(!setupError.empty())
-            text(setupError,625,638,17,sf::Color(255,136,116),true);
+            text(setupError,625,638,17,sf::Color(166,44,33),true);
         else
-            text(tr(L"Nhấn vào ô để nhập • Enter để bắt đầu",L"Click to type • Enter to start"),625,638,17,sf::Color(208,222,228),true);
+            text(tr(L"Nhấn vào ô để nhập • Enter để bắt đầu",L"Click to type • Enter to start"),625,638,17,sf::Color(36,20,9),true);
         button(tr(L"BẮT ĐẦU",L"START"),390,687,210,60);
         button(tr(L"QUAY LẠI",L"BACK"),650,687,210,60);
     }
     void drawHelp(){
         drawBackdrop();panel(153,96,944,788);
-        text(tr(L"HƯỚNG DẪN",L"HOW TO PLAY"),625,130,34,sf::Color(255,222,116),true);
+        text(tr(L"HƯỚNG DẪN",L"HOW TO PLAY"),625,130,34,sf::Color(110,30,20),true);
         const std::vector<std::wstring> vi={L"CHỌN QUÂN",L"Click vào một quân hoặc WASD + Enter để chọn.",L"Các vị trí sáng là nước đi hợp lệ. Click ô đích để đi.",L"LUẬT CƠ BẢN",L"Tướng đi một ô trong cung. Sĩ đi chéo một ô trong cung.",L"Tượng đi chéo hai ô, không qua sông và không bị chặn mắt.",L"Mã đi chữ L (có thể bị cản chân). Xe đi ngang hoặc dọc.",L"Pháo ăn quân khi có đúng một quân làm ngòi.",L"Tốt tiến một ô; qua sông có thể đi ngang, không lùi.",L"LƯU VÀ THAO TÁC",L"F5: Lưu nhanh. ESC: Menu. H: Hướng dẫn."};
         const std::vector<std::wstring> en={L"SELECT A PIECE",L"Click a piece or use WASD + Enter to select.",L"Highlighted intersections are legal moves. Click to move.",L"BASIC RULES",L"General: one step inside palace. Advisor: diagonal in palace.",L"Elephant: two diagonally, cannot cross river or jump eyes.",L"Horse: L-shape, can be blocked. Rook: straight lines.",L"Cannon captures by jumping exactly one screen piece.",L"Soldier advances; can go sideways after the river.",L"SAVES AND CONTROLS",L"F5: quick save. ESC: menu. H: help."};
         const auto& lines=english?en:vi;
-        for(size_t i=0;i<lines.size();++i){bool head=i==0||i==3||i==9;text(lines[i],200,218+49*i,head?22:17,head?sf::Color(255,222,116):sf::Color(235,239,240));}
+        for(size_t i=0;i<lines.size();++i){bool head=i==0||i==3||i==9;text(lines[i],200,218+49*i,head?22:17,head?sf::Color(110,30,20):sf::Color(36,20,9));}
         button(tr(L"QUAY LẠI",L"BACK"),489,825,260,58);
     }
     void drawHistory(){
         drawBackdrop();panel(245,108,770,740);
-        text(tr(L"TẢI VÁN CŨ",L"LOAD GAME"),625,138,32,sf::Color(255,222,116),true);
-        if(historyFiles.empty())text(tr(L"Chưa có ván đấu nào được lưu",L"No saved games yet"),625,350,20,sf::Color::White,true);
+        text(tr(L"TẢI VÁN CŨ",L"LOAD GAME"),625,138,32,sf::Color(110,30,20),true);
+        if(historyFiles.empty())text(tr(L"Chưa có ván đấu nào được lưu",L"No saved games yet"),625,350,20,sf::Color(36,20,9),true);
         for(int i=0;i<6;++i){int idx=historyPage*6+i;if(idx>=int(historyFiles.size()))break;
             std::string raw=std::filesystem::path(historyFiles[idx]).stem().string();
             std::wstring label(raw.begin(),raw.end());
@@ -469,7 +472,7 @@ private:
             button(label,310,225+i*71,640,58,idx==selectedSave);
         }
         button(L"<",492,688,58,48);button(L">",705,688,58,48);
-        text(std::to_wstring(historyPage+1),628,700,19,sf::Color::White,true);
+        text(std::to_wstring(historyPage+1),628,700,19,sf::Color(36,20,9),true);
         button(tr(L"TẢI ĐÃ CHỌN",L"LOAD SELECTED"),447,758,220,66);
         button(tr(L"QUAY LẠI",L"BACK"),697,758,220,66);
     }
